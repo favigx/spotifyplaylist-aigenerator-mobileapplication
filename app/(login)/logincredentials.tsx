@@ -22,10 +22,10 @@ export default function LoginScreen() {
     }
 
     try {
-      const userData = { username, password }; // Skapa objekt för att skicka till backend
-      const response = await loginUser(userData); // Anropa loginUser för att logga in
+      const userData = { username, password };
+      const response = await loginUser(userData);
       console.log("Inloggad, token mottagen:", response);
-      router.push("./index"); // Navigera till en annan skärm efter lyckad inloggning
+      router.push("./index");
     } catch (error: any) {
       setErrorMessage(error.message);
     } finally {
