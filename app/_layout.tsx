@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { RegisterProvider } from "./contexts/RegisterContext"
 
 SplashScreen.preventAutoHideAsync();
 
@@ -27,16 +28,18 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ title: "Home", headerShown: false }} />
-        <Stack.Screen name="(register)" options={{  headerShown: false }} />
-        <Stack.Screen name="(login)" options={{  headerShown: false }} />
-        <Stack.Screen name="email" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <RegisterProvider>  
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ title: "Home", headerShown: false }} />
+          <Stack.Screen name="(register)" options={{  headerShown: false }} />
+          <Stack.Screen name="(login)" options={{  headerShown: false }} />
+          <Stack.Screen name="email" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </RegisterProvider>
   );
 }

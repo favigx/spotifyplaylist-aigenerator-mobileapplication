@@ -2,13 +2,32 @@ import React, { useState } from "react";
 import { View, TextInput, Text, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import useRegister from "../contexts/RegisterContext";
+import registerUser from "../api/register";
 
-export default function UsernameScreen() {
-  const [email, setEmail] = useState("");
+export default function PasswordScreen() {
+  const { user, setUser } = useRegister();
   const router = useRouter();
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const handleNext = () => {
-    router.push("/(register)/confirmation");
+  const handleRegister = async () => {
+    if (user.password !== confirmPassword) {
+      setErrorMessage("Lösenorden matchar inte!");
+      return;
+    }
+
+    try {
+      await registerUser(user);
+      setUser({ email: "", username: "", password: "" });
+      router.push("/(register)/confirmation");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Registrering misslyckades. Ett okänt fel inträffade.");
+      }
+    }
   };
 
   return (
@@ -23,20 +42,25 @@ export default function UsernameScreen() {
         style={styles.input}
         placeholder="Skriv in lösenord"
         placeholderTextColor="gray"
-        value={email}
-        onChangeText={setEmail}
-      />
-       <Text style={styles.title}>Bekräfta lösenord</Text>
-       <TextInput
-        style={styles.input}
-        placeholder="Bekfräfa lösenord"
-        placeholderTextColor="gray"
-        value={email}
-        onChangeText={setEmail}
+        secureTextEntry
+        value={user.password}
+        onChangeText={(password) => setUser({ ...user, password })}
       />
 
+      <Text style={styles.title}>Bekräfta lösenord</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Bekräfta lösenord"
+        placeholderTextColor="gray"
+        secureTextEntry
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+      />
+
+      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.button} onPress={handleNext}>
+        <Pressable style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>Nästa</Text>
         </Pressable>
       </View>
@@ -47,9 +71,9 @@ export default function UsernameScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C1C1C',
+    backgroundColor: "#1C1C1C",
     padding: 20,
-    paddingTop: 150
+    paddingTop: 150,
   },
   backButton: {
     position: "absolute",
@@ -58,46 +82,54 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   createAccount: {
-    color: 'white',
+    color: "white",
     fontSize: 15,
     position: "absolute",
     top: 60,
     alignSelf: "center",
   },
   title: {
-    color: 'white',
+    color: "white",
     fontSize: 25,
     marginBottom: 5,
   },
   input: {
     height: 60,
-    borderColor: 'gray',
+    borderColor: "gray",
     borderWidth: 1,
     borderRadius: 12,
     marginBottom: 20,
-    width: '100%',
+    width: "100%",
     paddingLeft: 10,
-    color: 'white',
+    color: "white",
     fontSize: 20,
   },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    marginBottom: 10,
+    position: "absolute",
+    top: 370,
+    left: 20,
+  },
   buttonContainer: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
+    justifyContent: "flex-end",
+    alignItems: "center",
     marginTop: 20,
   },
   button: {
     height: 45,
     width: 100,
     borderRadius: 35,
-    backgroundColor: 'grey',
+    backgroundColor: "#32CD32",
     padding: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
-    color: 'black',
+    color: "black",
     fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  }, 
+    fontWeight: "bold",
+    textAlign: "center",
+  },
 });

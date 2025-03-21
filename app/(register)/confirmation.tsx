@@ -1,9 +1,7 @@
-import React, { useState } from "react";
-import { View, TextInput, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 
-export default function UsernameScreen() {
-  const [email, setEmail] = useState("");
+export default function ConfirmationScreen() {
   const router = useRouter();
 
   const handleNext = () => {
