@@ -1,24 +1,18 @@
-const checkEmail = async (email: string) => {
-    try {
-      const response = await fetch(
-        `https://sea-turtle-app-le797.ondigitalocean.app/check-email/${encodeURIComponent(email)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-  
-      if (response.ok) {
-        return true; 
+import client from './client';
+
+const checkEmail = (email: string) => {
+  return client
+    .get(`/user/${email}/check-email`)
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      if (error.response && error.response.status === 409) {
+        throw new Error('E-posten är redan upptagen.');
       } else {
-        const errorMessage = await response.text(); 
-        throw new Error(errorMessage);
+        throw new Error('Ett fel uppstod vid kontrollen.');
       }
-    } catch (error) {
-      throw error;
-    }
-  };
-  
-  export default checkEmail;
+    });
+};
+
+export default checkEmail;

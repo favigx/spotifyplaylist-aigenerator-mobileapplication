@@ -1,38 +1,30 @@
 import { LoginUserInterface } from "../interfaces/LoginUserInterface";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveToken } from "../auth/TokenService";
+import client from './client';
 
-const loginUser = async (userData: LoginUserInterface) => {
-  try {
-    const response = await fetch("https://sea-turtle-app-le797.ondigitalocean.app/loginuser", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
+const loginUser = (userData: LoginUserInterface) => {
+  return client
+    .post('/user/login', userData)
+    .then(async (response) => {
+      console.log("Server Response:", response.data);
 
-    const responseText = await response.text();
-    console.log("Server Response:", responseText);
+      await saveToken(response.data);
+      console.log("Saved token", response.data);
 
-    if (!response.ok) {
-      throw new Error(responseText);
-    }
-    try {
-      const parsedResponse = JSON.parse(responseText);
-
-      if (parsedResponse.token) {
-        await saveToken(parsedResponse.token);
-        console.log("Saved token", responseText);
+      return response.data;  
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        throw new Error(error.response.data || "Fel vid inloggning.");
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        throw new Error("Ingen svar från servern.");
+      } else {
+        console.error("Error", error.message);
+        throw new Error(error.message || "Ett okänt fel inträffade.");
       }
-
-      return parsedResponse;
-    } catch (e) {
-      throw new Error("Svaret från servern är inte ett giltigt JSON-format.");
-    }
-  } catch (error) {
-    throw error;
-  }
+    });
 };
 
 export default loginUser;

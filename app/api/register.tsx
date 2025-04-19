@@ -1,25 +1,25 @@
 import { RegisterUserInterface } from "../interfaces/RegisterUserInterface";
+import client from './client';
 
-const registerUser = async (userData: RegisterUserInterface) => {
-  try {
-    const response = await fetch("https://sea-turtle-app-le797.ondigitalocean.app/user/app", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
+const registerUser = (userData: RegisterUserInterface) => {
+  return client
+    .post('/user/register/app', userData)
+    .then((response) => {
+      console.log("Server Response:", response.data);
+      return response.data;
+    })
+    .catch((error) => {
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        throw new Error(error.response.data || "Fel vid registrering.");
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        throw new Error("Ingen svar från servern.");
+      } else {
+        console.error("Error", error.message);
+        throw new Error(error.message || "Ett okänt fel inträffade.");
+      }
     });
-
-    const responseText = await response.text();
-
-    if (!response.ok) {
-      throw new Error(responseText);
-    }
-
-    return JSON.parse(responseText);
-  } catch (error) {
-    throw error;
-  }
 };
 
 export default registerUser;

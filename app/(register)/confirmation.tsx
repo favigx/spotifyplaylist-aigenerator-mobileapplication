@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
     paddingHorizontal: 20,
+    fontFamily: 'Arial'
   },
   buttonContainer: {
     justifyContent: 'flex-end',
@@ -52,8 +53,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
-    height: 45,
-    width: 100,
+    height: 50,
+    width: 120,
     borderRadius: 35,
     backgroundColor: '#32CD32',
     padding: 6,

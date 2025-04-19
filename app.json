@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/logotype.png",
     "backgroundColor": "#000000",
-    "scheme": "myapp",
+    "scheme": "exp",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/logotype.png",
@@ -27,7 +27,8 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "redirectUri": "exp://192.168.1.13:8081/--/spotify-callback"
     },
     "plugins": [
       "expo-router",

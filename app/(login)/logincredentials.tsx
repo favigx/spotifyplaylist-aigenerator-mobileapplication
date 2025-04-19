@@ -1,18 +1,24 @@
 import React, { useState } from "react";
-import { View, TextInput, Text, StyleSheet, Pressable } from "react-native";
+import { View, TextInput, Text, StyleSheet, Pressable, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import loginUser from "../api/Login"; 
+import loginUser from "../api/Login";
+import { jwtDecode } from 'jwt-decode';
+import getUserByUsername from '../api/UserDetails';
+import { UserDetailInterface } from '../interfaces/UserDetailInterface';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [focusedInput, setFocusedInput] = useState<'username' | 'password' | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const router = useRouter();
+  const [user, setUser] = useState<UserDetailInterface | null>(null);
 
   const handleLogin = async () => {
-    setErrorMessage(""); 
+    setErrorMessage("");
     setLoading(true);
 
     if (!username || !password) {
@@ -25,51 +31,84 @@ export default function LoginScreen() {
       const userData = { username, password };
       const response = await loginUser(userData);
       console.log("Inloggad, token mottagen:", response);
-      router.push("./index");
+
+      const decodedToken = jwtDecode<{ sub: string }>(response);
+      const usernameInToken = decodedToken.sub;
+
+      const user = await getUserByUsername(usernameInToken);
+      setUser(user);
+
+      if (user.spotifyAccessToken) {
+        router.push("/(generateplaylist)/GeneratePlaylist");
+      } else {
+        router.push("/(spotifylogin)/SpotifyLogin");
+      }
+
     } catch (error: any) {
-      setErrorMessage(error.message);
+      const errorMsg = error.response?.data || error.message || "Något gick fel.";
+      setErrorMessage(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.push("/")}>
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </Pressable>
-
-      <Text style={styles.createAccount}>Logga in</Text>
-      <Text style={styles.title}>Användarnamn</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Skriv in ditt användarnamn"
-        placeholderTextColor="gray"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <Text style={styles.title}>Lösenord</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Skriv in ditt lösenord"
-        placeholderTextColor="gray"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-
-      <View style={styles.buttonContainer}>
-        <Pressable
-          style={[styles.button, !username || !password ? styles.disabledButton : null]}
-          onPress={handleLogin}
-          disabled={!username || !password || loading}
-        >
-          <Text style={styles.buttonText}>Logga in</Text>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.push("/")}>
+          <Ionicons name="arrow-back" size={24} color="white" />
         </Pressable>
+
+        <Text style={styles.createAccount}>Logga in</Text>
+
+        <Text style={[styles.title, focusedInput === 'username' && styles.labelFocused]}>
+          Användarnamn
+        </Text>
+        <TextInput
+          style={[styles.input, focusedInput === 'username' && styles.inputFocused]}
+          placeholderTextColor="gray"
+          value={username}
+          onChangeText={setUsername}
+          onFocus={() => setFocusedInput('username')}
+          onBlur={() => setFocusedInput(null)}
+        />
+
+        <Text style={[styles.title, focusedInput === 'password' && styles.labelFocused]}>
+          Lösenord
+        </Text>
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, focusedInput === 'password' && styles.inputFocused]}
+            placeholderTextColor="gray"
+            value={password}
+            onChangeText={setPassword}
+            autoCapitalize="none"
+            secureTextEntry={!showPassword}
+            onFocus={() => setFocusedInput('password')}
+            onBlur={() => setFocusedInput(null)}
+          />
+          <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <Ionicons
+              name={showPassword ? "eye-off" : "eye"}
+              size={24}
+              color="gray"
+            />
+          </Pressable>
+        </View>
+
+        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={[styles.button, (!username || !password) && styles.disabledButton]}
+            onPress={handleLogin}
+            disabled={!username || !password || loading}
+          >
+            <Text style={styles.buttonText}>Logga in</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -94,9 +133,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   title: {
-    color: 'white',
-    fontSize: 25,
+    color: 'grey',
+    fontSize: 24,
     marginBottom: 5,
+    fontFamily: 'Arial'
+  },
+  labelFocused: {
+    color: 'white',
   },
   input: {
     height: 60,
@@ -109,6 +152,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 20,
   },
+  inputFocused: {
+    borderColor: 'white',
+  },
   errorText: {
     color: "red",
     fontSize: 14,
@@ -120,10 +166,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
-    height: 45,
-    width: 100,
+    height: 50,
+    width: 120,
     borderRadius: 35,
-    backgroundColor: 'grey',
+    backgroundColor: 'white',
     padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
@@ -136,5 +182,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-  }, 
+  },
+  passwordContainer: {
+    position: 'relative',
+    width: '100%',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: 15,
+  }
 });

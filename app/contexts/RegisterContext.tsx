@@ -1,4 +1,3 @@
-// contexts/RegisterContext.tsx
 import React, { createContext, useContext, useState } from "react";
 import { RegisterUserInterface } from "../interfaces/RegisterUserInterface";
 

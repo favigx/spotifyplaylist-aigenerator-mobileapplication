@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TextInput, Text, StyleSheet, Pressable } from "react-native";
+import { View, TextInput, Text, StyleSheet, Pressable, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import useRegister from "../contexts/RegisterContext";
@@ -10,13 +10,14 @@ export default function EmailScreen() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     setErrorMessage(""); 
     setLoading(true);
 
@@ -26,46 +27,52 @@ export default function EmailScreen() {
       return;
     }
 
-    try {
-      await checkEmail(user.email);
-      router.push("/(register)/username");
-    } catch (error: any) {
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
-    }
+    checkEmail(user.email)
+      .then(() => {
+        router.push("/(register)/username");
+      })
+      .catch((error: any) => {
+        setErrorMessage(error.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.push("/")}>
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </Pressable>
-
-      <Text style={styles.createAccount}>Skapa konto</Text>
-      <Text style={styles.title}>E-postadress</Text>
-      <TextInput
-        style={styles.input}
-        placeholderTextColor="gray"
-        value={user.email}
-        onChangeText={(email) => setUser({ ...user, email })}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-      />
-
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-
-      <View style={styles.buttonWrapper}>
-        <Pressable
-          style={[styles.button, !user.email || !isValidEmail(user.email) ? styles.disabledButton : null]}
-          onPress={handleNext}
-          disabled={!user.email || !isValidEmail(user.email) || loading}
-        >
-          <Text style={styles.buttonText}>Nästa</Text>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.push("/")}>
+          <Ionicons name="arrow-back" size={24} color="white" />
         </Pressable>
+
+        <Text style={[styles.createAccount, isFocused && styles.focusedTitle]}>Skapa konto</Text>
+        <Text style={[styles.title, isFocused && styles.focusedTitle]}>E-postadress</Text>
+        <TextInput
+          style={[styles.input, isFocused && styles.focusedInput]}
+          placeholderTextColor="gray"
+          value={user.email}
+          onChangeText={(email) => setUser({ ...user, email })}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+
+        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
+        <View style={styles.buttonWrapper}>
+          <Pressable
+            style={[styles.button, !user.email || !isValidEmail(user.email) ? styles.disabledButton : null]}
+            onPress={handleNext}
+            disabled={!user.email || !isValidEmail(user.email) || loading}
+          >
+            <Text style={styles.buttonText}>Nästa</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -91,9 +98,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   title: {
-    color: "white",
-    fontSize: 25,
+    color: 'grey',
+    fontSize: 24,
     marginBottom: 5,
+    fontFamily: 'Arial'
+  },
+  focusedTitle: {
+    color: 'white',
   },
   input: {
     height: 60,
@@ -105,6 +116,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: "white",
     fontSize: 20,
+  },
+  focusedInput: {
+    borderColor: "white",
+    color: "white",
   },
   errorText: {
     color: "red",

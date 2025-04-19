@@ -1,25 +1,18 @@
-const checkUsername = async (username: string) => {
-    try {
-      const response = await fetch(
-        `https://sea-turtle-app-le797.ondigitalocean.app/check-username/${encodeURIComponent(username)}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-  
-      if (response.ok) {
-        return true; 
+import client from './client';
+
+const checkUsername = (username: string) => {
+  return client
+    .get(`/user/${username}/check-username`)
+    .then(response => {
+      return response.data;
+    })
+    .catch(error => {
+      if (error.response && error.response.status === 409) {
+        throw new Error('Användarnamnet är redan upptagen.');
       } else {
-        const errorMessage = await response.text(); 
-        throw new Error(errorMessage);
+        throw new Error('Ett fel uppstod vid kontrollen.');
       }
-    } catch (error) {
-      throw error;
-    }
-  };
-  
-  export default checkUsername;
-  
+    });
+};
+
+export default checkUsername;

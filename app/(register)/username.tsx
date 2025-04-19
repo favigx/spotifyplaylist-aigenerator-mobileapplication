@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { View, TextInput, Text, StyleSheet, Pressable } from "react-native";
+import { View, TextInput, Text, StyleSheet, Pressable, TouchableWithoutFeedback, Keyboard } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import useRegister from "../contexts/RegisterContext";
 import checkUsername from "../api/CheckUsername";
 
-export default function EmailScreen() {
+export default function UsernameScreen() {
   const { user, setUser } = useRegister();
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleNext = async () => {
-    setErrorMessage(""); 
+    setErrorMessage("");
     setLoading(true);
 
     try {
@@ -26,35 +27,40 @@ export default function EmailScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Pressable style={styles.backButton} onPress={() => router.push("/email")}>
-        <Ionicons name="arrow-back" size={24} color="white" />
-      </Pressable>
-
-      <Text style={styles.createAccount}>Skapa konto</Text>
-      <Text style={styles.title}>Användarnamn</Text>
-      <TextInput
-        style={styles.input}
-        placeholderTextColor="gray"
-        value={user.username}
-        onChangeText={(username) => setUser({ ...user, username })}
-        keyboardType="default"
-        autoCapitalize="none"
-        autoComplete="username"
-      />
-
-      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-
-      <View style={styles.buttonWrapper}>
-        <Pressable
-          style={[styles.button, !user.username ? styles.disabledButton : null]}
-          onPress={handleNext}
-          disabled={!user.username || loading}
-        >
-          <Text style={styles.buttonText}>Nästa</Text>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+      <View style={styles.container}>
+        <Pressable style={styles.backButton} onPress={() => router.push("/email")}>
+          <Ionicons name="arrow-back" size={24} color="white" />
         </Pressable>
+
+        <Text style={[styles.createAccount, isFocused && styles.focusedTitle]}>Skapa konto</Text>
+        <Text style={[styles.title, isFocused && styles.focusedTitle]}>Användarnamn</Text>
+        <TextInput
+          style={[styles.input, isFocused && styles.focusedInput]}
+          placeholderTextColor="gray"
+          value={user.username}
+          onChangeText={(username) => setUser({ ...user, username })}
+          keyboardType="default"
+          autoCapitalize="words"
+          autoComplete="username"
+         
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+
+        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
+        <View style={styles.buttonWrapper}>
+          <Pressable
+            style={[styles.button, !user.username ? styles.disabledButton : null]}
+            onPress={handleNext}
+            disabled={!user.username || loading}
+          >
+            <Text style={styles.buttonText}>Nästa</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -80,9 +86,13 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   title: {
-    color: "white",
-    fontSize: 25,
+    color: 'grey',
+    fontSize: 24,
     marginBottom: 5,
+    fontFamily: 'Arial'
+  },
+  focusedTitle: {
+    color: 'white',
   },
   input: {
     height: 60,
@@ -94,6 +104,10 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: "white",
     fontSize: 20,
+  },
+  focusedInput: {
+    borderColor: "white",
+    color: "white",
   },
   errorText: {
     color: "red",

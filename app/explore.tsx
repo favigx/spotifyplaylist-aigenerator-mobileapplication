@@ -53,15 +53,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   buttonContainer: {
-    justifyContent: 'flex-end',  // Detta gör att knappen hamnar längst ned
-    alignItems: 'center',       // Horisontellt centrerad
+    justifyContent: 'flex-end',
+    alignItems: 'center',
     marginTop: 20,
   },
   button: {
     height: 45,
-    width: 100,  // Större bredd på knappen
+    width: 100,
     borderRadius: 35,
-    backgroundColor: 'grey',  // Grön bakgrundsfärg
+    backgroundColor: 'grey',
     padding: 6,
     alignItems: 'center',
     justifyContent: 'center',
